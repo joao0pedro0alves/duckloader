@@ -5,6 +5,9 @@ import { pipeline } from 'node:stream'
 import { promisify } from 'node:util'
 
 import { FastifyInstance } from 'fastify'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+
+import { s3 } from '../lib/s3'
 
 const pump = promisify(pipeline)
 
@@ -33,9 +36,18 @@ export async function uploadRoutes(app: FastifyInstance) {
 
     const fileName = fileId.concat(extension)
 
-    // Streaming feature
-    // Amazon S3, Google GCS, Cloudflare R2
+    // Amazon S3
+    const putObjectCommand = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET,
+      Key: upload.filename,
+      ACL: 'public-read',
+      Body: await upload.toBuffer(),
+      ContentType: upload.mimetype,
+    })
 
+    await s3.send(putObjectCommand)
+
+    // Local
     const writeStream = createWriteStream(
       resolve(__dirname, '../', '../tmp', './uploads', fileName),
     )
