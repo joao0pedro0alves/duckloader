@@ -5,7 +5,6 @@ interface FilePickerProps {
   unUploadFile: (file: File) => void
 }
 
-
 export function FilePicker({ unUploadFile }: FilePickerProps) {
   function handleChangeFile(event: ChangeEvent<HTMLInputElement>) {
     const hasFilesSelected = event.target.files
@@ -18,13 +17,23 @@ export function FilePicker({ unUploadFile }: FilePickerProps) {
 
   return (
     <>
-      <label htmlFor='upload' className="p-8 pt-7 bg-purple-100 border border-dashed border-purple-300 rounded-lg mb-5 flex flex-col items-center justify-center cursor-pointer hover:bg-purple-200 transition-colors">
-        <div className='mb-3'>
-          <CloudArrowUp className='text-purple-500' size={45} />
+      <label
+        htmlFor="upload"
+        className="group mb-5 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-purple-300 bg-purple-100 p-8 pt-7 transition-colors hover:bg-purple-200"
+      >
+        <div className="mb-3">
+          <CloudArrowUp
+            className="text-purple-500 group-hover:animate-bounce"
+            size={45}
+          />
         </div>
 
-        <span className='text-purple-600 font-bold text-md'>Importe seus arquivos</span>
-        <span className='text-gray-700 text-sm'>Arraste ou clique para fazer upload</span>
+        <span className="text-md font-bold text-purple-600">
+          Importe seus arquivos
+        </span>
+        <span className="text-sm text-gray-700">
+          Arraste ou clique para fazer upload
+        </span>
       </label>
 
       <input

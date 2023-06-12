@@ -35,9 +35,9 @@ export function App() {
 
       const stage = progress === 100 ? 'completed' : 'progress'
 
-      setUploadedFiles((state) =>
-        produce(state, (draft) => {
-          const index = state.findIndex((item) => item.id === fileId)
+      setUploadedFiles(
+        produce((draft) => {
+          const index = draft.findIndex((item) => item.id === fileId)
           draft[index].progress = progress
           draft[index].stage = stage
         }),
@@ -56,16 +56,16 @@ export function App() {
 
       const fileUrl = uploadResponse.data.fileUrl
 
-      setUploadedFiles((state) =>
-        produce(state, (draft) => {
-          const index = state.findIndex((item) => item.id === fileId)
+      setUploadedFiles(
+        produce((draft) => {
+          const index = draft.findIndex((item) => item.id === fileId)
           draft[index].fileUrl = fileUrl
         }),
       )
     } catch (error) {
-      setUploadedFiles((state) =>
-        produce(state, (draft) => {
-          const index = state.findIndex((item) => item.id === fileId)
+      setUploadedFiles(
+        produce((draft) => {
+          const index = draft.findIndex((item) => item.id === fileId)
           draft[index].stage = 'uncompleted'
         }),
       )
@@ -75,8 +75,8 @@ export function App() {
   function handleUploadFile(file: File) {
     const newFile = createFile(file)
 
-    setUploadedFiles((state) =>
-      produce(state, (draft) => {
+    setUploadedFiles(
+      produce((draft) => {
         draft.push(newFile)
       }),
     )
@@ -85,7 +85,12 @@ export function App() {
   }
 
   function handleRemoveFile(file: UploadedFile) {
-    setUploadedFiles((state) => state.filter((item) => item.id !== file.id))
+    setUploadedFiles(
+      produce((draft) => {
+        const index = draft.findIndex((item) => item.id === file.id)
+        draft.splice(index, 1)
+      }),
+    )
   }
 
   function handleReloadFile(file: UploadedFile) {
