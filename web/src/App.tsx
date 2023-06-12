@@ -1,17 +1,20 @@
-import { useState } from 'react'
 import { AxiosProgressEvent } from 'axios'
-import { uniqueId } from 'lodash'
+import { produce } from 'immer'
 import { UploadedFile } from './@types/dto'
 
 import { api } from './services/api'
 import { FileList } from './components/FileList'
 import { FilePicker } from './components/FilePicker'
+import { usePersistedState } from './hooks/usePersistedState'
 
 export function App() {
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [uploadedFiles, setUploadedFiles] = usePersistedState<UploadedFile[]>(
+    '@duckloader:uploadedFiles-1.0.0',
+    [],
+  )
 
   function createFile(file: File): UploadedFile {
-    const fileId = uniqueId()
+    const fileId = String(new Date().getUTCMilliseconds())
 
     return {
       id: fileId,
@@ -33,15 +36,11 @@ export function App() {
       const stage = progress === 100 ? 'completed' : 'progress'
 
       setUploadedFiles((state) =>
-        state.map((file) =>
-          file.id !== fileId
-            ? file
-            : {
-                ...file,
-                progress,
-                stage,
-              },
-        ),
+        produce(state, (draft) => {
+          const index = state.findIndex((item) => item.id === fileId)
+          draft[index].progress = progress
+          draft[index].stage = stage
+        }),
       )
     }
   }
@@ -58,13 +57,17 @@ export function App() {
       const fileUrl = uploadResponse.data.fileUrl
 
       setUploadedFiles((state) =>
-        state.map((file) => (file.id !== fileId ? file : { ...file, fileUrl })),
+        produce(state, (draft) => {
+          const index = state.findIndex((item) => item.id === fileId)
+          draft[index].fileUrl = fileUrl
+        }),
       )
     } catch (error) {
       setUploadedFiles((state) =>
-        state.map((file) =>
-          file.id !== fileId ? file : { ...file, stage: 'uncompleted' },
-        ),
+        produce(state, (draft) => {
+          const index = state.findIndex((item) => item.id === fileId)
+          draft[index].stage = 'uncompleted'
+        }),
       )
     }
   }
@@ -72,7 +75,11 @@ export function App() {
   function handleUploadFile(file: File) {
     const newFile = createFile(file)
 
-    setUploadedFiles((state) => [newFile, ...state])
+    setUploadedFiles((state) =>
+      produce(state, (draft) => {
+        draft.push(newFile)
+      }),
+    )
 
     uploadFile(newFile.id, file)
   }

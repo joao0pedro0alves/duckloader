@@ -1,6 +1,10 @@
 import clsx from 'clsx'
 import { filesize } from 'filesize'
-import { File, X, ArrowCounterClockwise as Retry } from 'phosphor-react'
+import {
+  File as FileIcon,
+  X,
+  ArrowCounterClockwise as Retry,
+} from 'phosphor-react'
 import { UploadedFile } from '../@types/dto'
 import { ProgressBar } from './ProgressBar'
 
@@ -17,6 +21,7 @@ export function FileList({ files, onRemoveFile, onReloadFile }: FileListProps) {
         const inProgress = file.stage === 'progress'
         const isCompleted = file.stage === 'completed'
         const isUncompleted = file.stage === 'uncompleted'
+        const isValidFile = file.originalFile instanceof File
 
         const loadedSize = (file.size * file.progress) / 100
         const formattedLoadedSize = String(filesize(loadedSize))
@@ -37,20 +42,20 @@ export function FileList({ files, onRemoveFile, onReloadFile }: FileListProps) {
                 'bg-red-200 text-red-500': isUncompleted,
               })}
             >
-              <File size={24} weight="fill" />
+              <FileIcon size={24} weight="fill" />
             </a>
 
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold">{file.fileName}</span>
 
-                {inProgress && (
+                {(inProgress || (isUncompleted && !isValidFile)) && (
                   <button onClick={() => onRemoveFile(file)}>
                     <X className="text-purple-500" size={20} />
                   </button>
                 )}
 
-                {isUncompleted && (
+                {isUncompleted && isValidFile && (
                   <button onClick={() => onReloadFile(file)}>
                     <Retry className="text-purple-500" size={20} />
                   </button>
