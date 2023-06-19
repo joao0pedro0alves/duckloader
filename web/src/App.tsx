@@ -12,6 +12,7 @@ interface ResponseFile {
   fileName: string
   originalName: string
   fileUrl: string
+  size: number
 }
 
 export function App() {
@@ -25,7 +26,7 @@ export function App() {
           id: file.id,
           fileName: file.originalName,
           fileUrl: file.fileUrl,
-          size: 0,
+          size: file.size,
           progress: 100,
           stage: 'completed',
           originalFile: null,
@@ -39,7 +40,7 @@ export function App() {
   }, [])
 
   function createFile(file: File): UploadedFile {
-    const fileId = String(new Date().getUTCMilliseconds())
+    const fileId = String(Math.random())
 
     return {
       id: fileId,

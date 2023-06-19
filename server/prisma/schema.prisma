@@ -15,4 +15,5 @@ model File {
   fileName     String
   originalName String
   fileUrl      String
+  size         Int
 }

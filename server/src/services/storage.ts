@@ -8,7 +8,7 @@ import { MultipartFile } from '@fastify/multipart'
 
 const pump = promisify(pipeline)
 
-type StorageType = 'local' | 'gs'
+export type StorageType = 'local' | 'gs'
 type File = string | MultipartFile['file']
 
 export class Storage {

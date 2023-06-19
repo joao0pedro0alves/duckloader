@@ -2,10 +2,10 @@ import { randomUUID } from 'node:crypto'
 import { extname } from 'node:path'
 import { FastifyInstance } from 'fastify'
 
-import { Storage } from '../services/storage'
+import { Storage, StorageType } from '../services/storage'
 import { prisma } from '../lib/prisma'
 
-const storage = new Storage('local')
+const storage = new Storage(process.env.STORAGE_TYPE as StorageType)
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.post('/upload', async (request, reply) => {
@@ -41,6 +41,7 @@ export async function uploadRoutes(app: FastifyInstance) {
           fileName,
           fileUrl,
           originalName: upload.filename,
+          size: upload.file.bytesRead,
         },
       })
 
