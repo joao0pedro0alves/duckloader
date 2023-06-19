@@ -9,5 +9,5 @@ export interface UploadedFile {
   progress: number
   stage: StageType
 
-  originalFile: File
+  originalFile: File | null
 }

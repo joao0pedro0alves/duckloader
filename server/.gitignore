@@ -11,8 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+*.db
 
-tmp/uploads/*
+tmp/**/*
 !.keep
 
 # Editor directories and files

@@ -1,19 +1,17 @@
 import { randomUUID } from 'node:crypto'
-import { extname, resolve } from 'node:path'
-import { createWriteStream } from 'node:fs'
-import { pipeline } from 'node:stream'
-import { promisify } from 'node:util'
-
+import { extname } from 'node:path'
 import { FastifyInstance } from 'fastify'
 
-const pump = promisify(pipeline)
+import { Storage, StorageType } from '../services/storage'
+import { prisma } from '../lib/prisma'
+
+const storage = new Storage(process.env.STORAGE_TYPE as StorageType)
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.post('/upload', async (request, reply) => {
     const upload = await request.file({
       limits: {
-        // fileSize: 5_242_880, // 5mb
-        fileSize: 1 * 1024 * 1024, // 1mb
+        fileSize: 5_242_880, // 5mb
       },
     })
 
@@ -33,18 +31,25 @@ export async function uploadRoutes(app: FastifyInstance) {
 
     const fileName = fileId.concat(extension)
 
-    // Streaming feature
-    // Amazon S3, Google GCS, Cloudflare R2
+    try {
+      const fullUrl = request.protocol.concat('://').concat(request.hostname)
+      const { fileUrl } = await storage.upload(fileName, upload.file, fullUrl)
 
-    const writeStream = createWriteStream(
-      resolve(__dirname, '../', '../tmp', './uploads', fileName),
-    )
+      // Save file on db
+      await prisma.file.create({
+        data: {
+          fileName,
+          fileUrl,
+          originalName: upload.filename,
+          size: upload.file.bytesRead,
+        },
+      })
 
-    await pump(upload.file, writeStream)
-
-    const fullUrl = request.protocol.concat('://').concat(request.hostname)
-    const fileUrl = new URL(`/uploads/${fileName}`, fullUrl).toString()
-
-    return { fileUrl }
+      return { fileUrl }
+    } catch (error) {
+      reply.status(500).send({
+        message: `Could not upload the file: ${fileName}. ${error}`,
+      })
+    }
   })
 }

@@ -7,11 +7,13 @@ interface FilePickerProps {
 
 export function FilePicker({ unUploadFile }: FilePickerProps) {
   function handleChangeFile(event: ChangeEvent<HTMLInputElement>) {
-    const hasFilesSelected = event.target.files
+    if (event.target.files) {
+      // const file = event.target.files?.[0]
+      // if (file) unUploadFile(file)
 
-    if (hasFilesSelected) {
-      const file = event.target.files?.[0]
-      if (file) unUploadFile(file)
+      for (const file of event.target.files) {
+        if (file) unUploadFile(file)
+      }
     }
   }
 
@@ -19,13 +21,10 @@ export function FilePicker({ unUploadFile }: FilePickerProps) {
     <>
       <label
         htmlFor="upload"
-        className="group mb-5 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-purple-300 bg-purple-100 p-8 pt-7 transition-colors hover:bg-purple-200"
+        className="mb-5 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-purple-300 bg-purple-100 p-8 pt-7 transition-colors hover:bg-purple-200"
       >
         <div className="mb-3">
-          <CloudArrowUp
-            className="text-purple-500 group-hover:animate-bounce"
-            size={45}
-          />
+          <CloudArrowUp className="text-purple-500" size={45} />
         </div>
 
         <span className="text-md font-bold text-purple-600">
@@ -37,11 +36,12 @@ export function FilePicker({ unUploadFile }: FilePickerProps) {
       </label>
 
       <input
+        multiple
         className="hidden"
         type="file"
         name="upload"
         id="upload"
-        accept="image/*"
+        accept="image/*,video/*"
         onChange={handleChangeFile}
       />
     </>

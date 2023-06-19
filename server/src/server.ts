@@ -1,10 +1,12 @@
-import { resolve } from 'node:path'
+import 'dotenv/config'
 
+import { resolve } from 'node:path'
 import fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 
 import { uploadRoutes } from './routes/upload'
+import { filesRoutes } from './routes/files'
 
 const app = fastify()
 
@@ -22,6 +24,7 @@ app.register(require('@fastify/static'), {
 
 // Routes
 app.register(uploadRoutes)
+app.register(filesRoutes)
 
 app
   .listen({

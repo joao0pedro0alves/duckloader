@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { AxiosProgressEvent } from 'axios'
 import { produce } from 'immer'
 import { UploadedFile } from './@types/dto'
@@ -5,16 +6,41 @@ import { UploadedFile } from './@types/dto'
 import { api } from './services/api'
 import { FileList } from './components/FileList'
 import { FilePicker } from './components/FilePicker'
-import { usePersistedState } from './hooks/usePersistedState'
+
+interface ResponseFile {
+  id: string
+  fileName: string
+  originalName: string
+  fileUrl: string
+  size: number
+}
 
 export function App() {
-  const [uploadedFiles, setUploadedFiles] = usePersistedState<UploadedFile[]>(
-    '@duckloader:uploadedFiles-1.0.0',
-    [],
-  )
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+
+  useEffect(() => {
+    async function loadFiles() {
+      const response = await api.get('/files')
+      const uploadedFiles = response.data.map(
+        (file: ResponseFile): UploadedFile => ({
+          id: file.id,
+          fileName: file.originalName,
+          fileUrl: file.fileUrl,
+          size: file.size,
+          progress: 100,
+          stage: 'completed',
+          originalFile: null,
+        }),
+      )
+
+      setUploadedFiles(uploadedFiles)
+    }
+
+    loadFiles()
+  }, [])
 
   function createFile(file: File): UploadedFile {
-    const fileId = String(new Date().getUTCMilliseconds())
+    const fileId = String(Math.random())
 
     return {
       id: fileId,
@@ -94,7 +120,7 @@ export function App() {
   }
 
   function handleReloadFile(file: UploadedFile) {
-    uploadFile(file.id, file.originalFile)
+    if (file.originalFile) uploadFile(file.id, file.originalFile)
   }
 
   return (
