@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { AxiosProgressEvent } from 'axios'
 import { produce } from 'immer'
 import { UploadedFile } from './@types/dto'
@@ -5,13 +6,9 @@ import { UploadedFile } from './@types/dto'
 import { api } from './services/api'
 import { FileList } from './components/FileList'
 import { FilePicker } from './components/FilePicker'
-import { usePersistedState } from './hooks/usePersistedState'
 
 export function App() {
-  const [uploadedFiles, setUploadedFiles] = usePersistedState<UploadedFile[]>(
-    '@duckloader:uploadedFiles-1.0.0',
-    [],
-  )
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
 
   function createFile(file: File): UploadedFile {
     const fileId = String(new Date().getUTCMilliseconds())

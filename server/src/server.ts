@@ -1,5 +1,6 @@
-import { resolve } from 'node:path'
+import 'dotenv/config'
 
+import { resolve } from 'node:path'
 import fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'

@@ -1,19 +1,19 @@
 import { randomUUID } from 'node:crypto'
-import { extname, resolve } from 'node:path'
-import { createWriteStream } from 'node:fs'
+import { extname } from 'node:path'
 import { pipeline } from 'node:stream'
 import { promisify } from 'node:util'
 
 import { FastifyInstance } from 'fastify'
+import { bucket } from '../lib/google-cloud-storage'
 
 const pump = promisify(pipeline)
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.post('/upload', async (request, reply) => {
+    // @ts-ignore
     const upload = await request.file({
       limits: {
-        // fileSize: 5_242_880, // 5mb
-        fileSize: 1 * 1024 * 1024, // 1mb
+        fileSize: 5_242_880, // 5mb
       },
     })
 
@@ -33,18 +33,38 @@ export async function uploadRoutes(app: FastifyInstance) {
 
     const fileName = fileId.concat(extension)
 
-    // Streaming feature
-    // Amazon S3, Google GCS, Cloudflare R2
+    try {
+      //= ========= Local
 
-    const writeStream = createWriteStream(
-      resolve(__dirname, '../', '../tmp', './uploads', fileName),
-    )
+      // const writeStream = createWriteStream(
+      //   resolve(__dirname, '../', '../tmp', './uploads', fileName),
+      // )
 
-    await pump(upload.file, writeStream)
+      // await pump(upload.file, writeStream)
 
-    const fullUrl = request.protocol.concat('://').concat(request.hostname)
-    const fileUrl = new URL(`/uploads/${fileName}`, fullUrl).toString()
+      // const fullUrl = request.protocol.concat('://').concat(request.hostname)
+      // const fileUrl = new URL(`/uploads/${fileName}`, fullUrl).toString()
 
-    return { fileUrl }
+      // return { fileUrl }
+
+      //= ================ Google GCS
+
+      const blob = bucket.file(fileName)
+
+      const blobStream = blob.createWriteStream({
+        resumable: false,
+      })
+
+      await pump(upload.file, blobStream)
+
+      const fullUrl = 'https://storage.googleapis.com'
+      const fileUrl = new URL(`/${bucket.name}/${fileName}`, fullUrl).toString()
+
+      return { fileUrl }
+    } catch (error) {
+      reply.status(500).send({
+        message: `Could not upload the file: ${fileName}. ${error}`,
+      })
+    }
   })
 }
