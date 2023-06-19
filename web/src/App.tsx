@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AxiosProgressEvent } from 'axios'
 import { produce } from 'immer'
 import { UploadedFile } from './@types/dto'
@@ -7,8 +7,36 @@ import { api } from './services/api'
 import { FileList } from './components/FileList'
 import { FilePicker } from './components/FilePicker'
 
+interface ResponseFile {
+  id: string
+  fileName: string
+  originalName: string
+  fileUrl: string
+}
+
 export function App() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+
+  useEffect(() => {
+    async function loadFiles() {
+      const response = await api.get('/files')
+      const uploadedFiles = response.data.map(
+        (file: ResponseFile): UploadedFile => ({
+          id: file.id,
+          fileName: file.originalName,
+          fileUrl: file.fileUrl,
+          size: 0,
+          progress: 100,
+          stage: 'completed',
+          originalFile: null,
+        }),
+      )
+
+      setUploadedFiles(uploadedFiles)
+    }
+
+    loadFiles()
+  }, [])
 
   function createFile(file: File): UploadedFile {
     const fileId = String(new Date().getUTCMilliseconds())
@@ -91,7 +119,7 @@ export function App() {
   }
 
   function handleReloadFile(file: UploadedFile) {
-    uploadFile(file.id, file.originalFile)
+    if (file.originalFile) uploadFile(file.id, file.originalFile)
   }
 
   return (
