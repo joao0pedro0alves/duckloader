@@ -5,10 +5,11 @@ import fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 
-import { uploadRoutes } from './routes/upload'
-import { filesRoutes } from './routes/files'
+import { apiRoutes } from './routes'
 
-const app = fastify()
+const app = fastify({
+  logger: true,
+})
 
 // Middlewares
 app.register(multipart)
@@ -23,13 +24,12 @@ app.register(require('@fastify/static'), {
 })
 
 // Routes
-app.register(uploadRoutes)
-app.register(filesRoutes)
+app.register(apiRoutes, { prefix: 'api/v1' })
 
 app
   .listen({
-    port: 3000,
+    port: 3333,
   })
   .then(() => {
-    console.log('HTTP server is running on port http://localhost:3000')
+    console.log('HTTP server is running on port http://localhost:3333')
   })
